@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: real-estate-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: pgreuser
+      POSTGRES_PASSWORD: pgrepass
+      POSTGRES_DB: real-estate-app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
