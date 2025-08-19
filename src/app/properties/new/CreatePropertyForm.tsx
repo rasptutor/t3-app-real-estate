@@ -41,38 +41,16 @@ export default function CreatePropertyForm() {
     onError: (err) => console.error("Mutation failed:", err),
   });
 
-  const onSubmit = (data: PropertyInput) => {
-    /*
-    console.log("Form submitted:", data);
-    if (images.length === 0) {
-      alert("Please upload at least one image.");
-      return;
-    }
-    mutation.mutate({ ...data, imageUrl: images[0]!, images },
-    {
-      onError: (err) => {
-        console.error("❌ Mutation failed:", err);
-      },
-      onSuccess: (res) => {
-        console.log("✅ Property created:", res);
-        router.push("/properties");
-      },
-    });
-    */
-
+  const onSubmit = (data: PropertyInput) => {    
     console.log("Submitting form data:", data, images);
 
     if (images.length === 0) {
       alert("Please upload at least one image.");
       return;
-    }    
-
-    //const finalImages = images.length > 0 ? images : [];
+    }   
 
     mutation.mutate({
-      ...data,
-      //images: finalImages,
-      //imageUrl: finalImages[0] as string,
+      ...data,      
       images,
       imageUrl: images[0] as string,
     });
@@ -126,26 +104,8 @@ export default function CreatePropertyForm() {
           {errors.propertyType && <p className="text-red-600 text-sm">{errors.propertyType.message}</p>}
         </div>       
         
-        <MultiImageUploader onUploadComplete={setImages} />
-              
-        {/*<MultiImageUploader onUploadComplete={(urls) => setImages(urls)} />*/}
-        {/*images.length === 0 && (
-          <p className="text-red-600 text-sm">Please upload at least one image</p>
-        )*/}        
-
-        {/*images.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            {images.map((url, i) => (
-              <img
-                key={i}
-                src={url}
-                alt={`Preview ${i}`}
-                className="w-full h-40 object-cover rounded-md border"
-              />
-            ))}
-          </div>
-        )*/}
-
+        <MultiImageUploader onUploadComplete={setImages} />             
+      
         <button
           type="submit"
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
