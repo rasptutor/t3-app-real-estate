@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import CreatePropertyForm from "./CreatePropertyForm";
 import Link from "next/link";
-import PropertyFormTest from "./PropertyFormTest";
 
 export default async function NewPropertyPage() {  
     const session = await auth();

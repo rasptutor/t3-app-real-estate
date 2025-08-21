@@ -5,7 +5,7 @@ import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
-import MultiImageTest from "@/components/MultiImageTest";
+import MultiImageUploader from "@/components/MultiImageUploader";
 
 const propertySchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -129,7 +129,7 @@ export default function CreatePropertyForm() {
             name="images"
             control={control}
             render={({ field }) => (
-              <MultiImageTest
+              <MultiImageUploader
                 value={field.value}
                 onChange={field.onChange}
               />
