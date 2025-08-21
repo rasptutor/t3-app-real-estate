@@ -48,6 +48,7 @@ model Property {
 model PropertyImage {
   id         String   @id @default(cuid())
   url        String
+  key        String
   property   Property @relation(fields: [propertyId], references: [id])
   propertyId String
 }

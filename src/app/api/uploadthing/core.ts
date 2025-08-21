@@ -28,7 +28,8 @@ export const ourFileRouter = {
       console.log("file url", file.url);
       // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
       return { 
-        url: file.url,   // <-- this is critical
+        url: file.url,
+        key: file.key, 
         uploadedBy: metadata.userId,
       };
     }),

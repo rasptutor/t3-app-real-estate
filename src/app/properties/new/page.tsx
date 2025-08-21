@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import CreatePropertyForm from "./CreatePropertyForm";
 import Link from "next/link";
+import PropertyFormTest from "./PropertyFormTest";
 
 export default async function NewPropertyPage() {  
     const session = await auth();
@@ -11,7 +12,8 @@ export default async function NewPropertyPage() {
   
   return (
     <>
-      <CreatePropertyForm />
+      <CreatePropertyForm />     
+         
       <Link
         href="/properties"
         className="inline-block mt-6 text-blue-600 hover:underline"

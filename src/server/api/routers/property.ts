@@ -3,6 +3,9 @@ import { z } from "zod";
 import { publicProcedure, agentProcedure, createTRPCRouter } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { Prisma } from "@prisma/client";
+import { UTApi } from "uploadthing/server";
+
+const utapi = new UTApi();
 
 const createPropertySchema = z.object({
   title: z.string().min(3),
@@ -16,7 +19,12 @@ const createPropertySchema = z.object({
   availableFrom: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Invalid date",
   }),
-  images: z.array(z.string().url()).min(1),
+  images: z.array(
+    z.object({
+      url: z.string().url(),
+      key: z.string(),       // <- new required key
+    })
+  ).min(1),
 });
 
 export const propertyRouter = createTRPCRouter({
@@ -33,11 +41,14 @@ export const propertyRouter = createTRPCRouter({
           availableFrom: new Date(input.availableFrom),
           price: Number(input.price),
           ownerId: userId,
-          imageUrl: input.images[0]!,
+          imageUrl: input.images[0]!.url,
           images: {
-            create: input.images.map((url) => ({ url })),
+            create: input.images.map((img) => ({
+              url: img.url,
+              key: img.key,   // <-- save UT key for deletion
+            })),
           },
-                },
+        },
       });
 
       return newProperty;
@@ -140,6 +151,34 @@ export const propertyRouter = createTRPCRouter({
         totalPages: Math.ceil(total / pageSize),
         currentPage: page,
       };
+    }),
+
+  deleteImage: agentProcedure
+    .input(z.object({
+      propertyId: z.string(),
+      imageId: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Check that user is agent and owns the property
+      const property = await ctx.db.property.findFirst({
+        where: { id: input.propertyId, ownerId: ctx.session.user.id },
+        include: { images: true },
+      });
+
+      if (!property) throw new Error("Not authorized");
+
+      const image = property.images.find(img => img.id === input.imageId);
+      if (!image) throw new Error("Image not found");
+
+      // Delete from UploadThing
+      await utapi.deleteFiles(image.key);
+
+      // Delete from DB
+      await ctx.db.propertyImage.delete({
+        where: { id: image.id },
+      });
+
+      return { success: true };
     }),
 });
 
