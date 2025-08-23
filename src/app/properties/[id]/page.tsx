@@ -1,21 +1,42 @@
 // app/properties/[id]/page.tsx
 import { db } from '@/server/db';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { BookingForm } from './BookingForm';
 import ReviewWrapper from './review-wrapper';
 import { auth } from '@/server/auth';
 import AvailabilityCalendar from './AvailabilityCalendar';
+import PropertyDetailsHeader from './PropertyDetailsHeader';
+import PropertyDetailsOverview from './PropertyDetailsOverview';
+import { Bed, Bath, Car, Square, MapPin } from "lucide-react";
+import PropertyAgent from './PropertyAgent';
+
+const ICONS_MAP: Record<string, any> = {
+  bed: Bed,
+  bath: Bath,
+  car: Car,
+  sqft: Square,
+  mapPin: MapPin,
+};
+
+export function getIcon(name: string) {
+  return ICONS_MAP[name] || Square; // fallback icon
+}
 
 export default async function PropertyDetailsPage({ params }: { params: { id: string } }) {
   
   const session = await auth();
+
+  const listingTypeMap = {
+    sale: { label: "For Sale", bgColor: "bg-green-100", textColor: "text-green-800" },
+    rent: { label: "For Rent", bgColor: "bg-blue-100", textColor: "text-blue-800" },
+  };  
 
   const property = await db.property.findUnique({
     where: { id: params.id },
     include: {
       owner: true,
       images: true,
+      agent: true,
       reviews: {
         include: { user: true }, // So you can show who wrote it
         orderBy: { createdAt: "desc" },
@@ -24,6 +45,18 @@ export default async function PropertyDetailsPage({ params }: { params: { id: st
   });
 
   if (!property) return notFound();
+
+  console.log("UTILITIES RAW:", property?.utilities);
+
+  const utilities = property.utilities
+  ? Object.entries(property.utilities).map(([key, status]) => ({
+      key,
+      label: key.charAt(0).toUpperCase() + key.slice(1), // simple label
+      status,
+      statusColor: status === "available" ? "text-green-600" : "text-red-600",
+      icon: key, // fallback handled in getIcon
+    }))
+  : null;
 
   // If user is logged in, try to find their booking for this property
   let booking = null;
@@ -40,22 +73,47 @@ export default async function PropertyDetailsPage({ params }: { params: { id: st
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-4">
+      <PropertyDetailsHeader/>
       <h1 className="text-3xl font-bold">{property.title}</h1>
       <div className="w-full aspect-[4/3] relative">
-        <img
-            src={property.imageUrl}
-            alt={property.title}
-            className="absolute inset-0 w-full h-full object-cover rounded"
-        />
+        {/* Cover image */}
+        {property.images.length > 0 ? (
+          <div className="w-full aspect-[4/3] relative">
+            <img
+              src={property.images[0]?.url}
+              alt={property.title}
+              className="absolute inset-0 w-full h-full object-cover rounded"
+            />
+          </div>
+        ) : (
+          <div className="w-full aspect-[4/3] bg-gray-200 flex items-center justify-center rounded">
+            <span className="text-gray-500">No image available</span>
+          </div>
+        )}
       </div>
-      <p className="text-lg text-gray-700">{property.description}</p>
-      <p>📍 Location: <strong>{property.location}</strong></p>
-      <p>💰 Price: <strong>${property.price.toLocaleString()}</strong></p>
-      <p>🏠 Type: <strong>{property.propertyType}</strong></p>
-      <p>🛏 Bedrooms: <strong>{property.bedrooms}</strong></p>
-      <p>🛁 Bathrooms: <strong>{property.bathrooms}</strong></p>
+      <section className="mt-4 grid grid-cols-3 gap-2">
+        {property.images.slice(1).map((img) => (
+          <img
+            key={img.id}
+            src={img.url}
+            alt={`${property.title} image`}
+            className="w-full h-32 object-cover rounded border"
+          />
+        ))}
+      </section> 
+      <PropertyDetailsOverview property={{
+        ...property,
+        listingType: listingTypeMap[property.listingType as "sale" | "rent"],
+        utilities,
+        price: property.price,
+        rentPrice: property.rentPrice,
+      }}/>
+      
+      <p>🏠 Type: <strong>{property.propertyType}</strong></p>      
       <p>📅 Available from: <strong>{new Date(property.availableFrom).toLocaleDateString()}</strong></p>
       <p>👤 Owner: <strong>{property.owner?.name}</strong></p>
+
+      <PropertyAgent property={property}/>
 
       <AvailabilityCalendar propertyId={property.id} />
 
@@ -84,25 +142,8 @@ export default async function PropertyDetailsPage({ params }: { params: { id: st
             ))}
           </div>
         )}
-      </section>
-
-      <section className="mt-4 grid grid-cols-3 gap-2">
-        {property.images.slice(1).map((img) => (
-          <img
-            key={img.id}
-            src={img.url}
-            alt={`${property.title} image`}
-            className="w-full h-32 object-cover rounded border"
-          />
-        ))}
-      </section>
+      </section>          
       
-      <Link
-        href="/properties"
-        className="inline-block mt-6 text-blue-600 hover:underline"
-      >
-        ← Back to Listings
-      </Link>
     </div>
   );
 }

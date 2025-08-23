@@ -6,7 +6,8 @@ import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
 const config = {
-    images: {
+  images: {
+    domains: ["images.unsplash.com"],
     remotePatterns: [
       {
         protocol: 'https',

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Menu, User } from "lucide-react";
@@ -10,12 +10,13 @@ import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 const Navigation = () => {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
-    { path: "/", label: "Buy" },
-    { path: "/properties?type=rent", label: "Rent" },
+    { path: "/properties", label: "Buy", listingType: "sale" },
+    { path: "/properties", label: "Rent", listingType: "rent" },
     { path: "/agencies", label: "Agencies" },
     { path: "/calculator", label: "Calculator" },
   ];
@@ -23,13 +24,19 @@ const Navigation = () => {
   const NavLinks = ({ mobile = false }) => (
     <div className={`flex ${mobile ? "flex-col space-y-4" : "items-baseline space-x-4"}`}>
       {navItems.map((item) => {
-        const isActive =
-          pathname === item.path || pathname.startsWith(item.path.split("?")[0] as string);
+        //const isActive = pathname === item.path || pathname.startsWith(item.path.split("?")[0] as string);
+        let isActive = false;
 
+        if (item.listingType) {
+          const currentType = searchParams.get("listingType");
+          isActive = pathname === item.path && currentType === item.listingType;
+        } else {
+          isActive = pathname === item.path || pathname.startsWith(item.path);
+        }
         return (
           <Link
-            key={item.path}
-            href={item.path}
+            key={item.listingType ? `${item.path}-${item.listingType}` : item.path}
+            href={item.listingType ? `${item.path}?listingType=${item.listingType}` : item.path}
             onClick={() => mobile && setIsOpen(false)}
             className={`transition-colors ${
               isActive
