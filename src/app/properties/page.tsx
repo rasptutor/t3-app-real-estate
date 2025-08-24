@@ -45,7 +45,7 @@ export default async function PropertiesPage({ searchParams }: { searchParams: R
       <div className="flex flex-row justify-between items-center">
         <h1 className="text-2xl font-bold">Property Listings</h1>
         <Link href="/my-bookings" className="text-blue-600 hover:underline">My Bookings</Link>
-        {session && <p className="text-center text-2xl">Logged in as {session.user?.name}</p>} 
+        {session && <p className="text-center ">Logged in as <span className="text-blue-600">{session.user?.name}</span></p>} 
       </div> 
 
       <aside className="lg:col-span-1">

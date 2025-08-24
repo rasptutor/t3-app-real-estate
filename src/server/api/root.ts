@@ -5,6 +5,7 @@ import { bookingRouter } from "./routers/booking";
 import { adminRouter } from "./routers/admin";
 import { reviewRouter } from "./routers/review";
 import { agencyRouter } from "./routers/agency";
+import { bondRouter } from "./routers/bond";
 
 /**
  * This is the primary router for your server.
@@ -17,7 +18,8 @@ export const appRouter = createTRPCRouter({
   booking: bookingRouter,
   admin: adminRouter,
   review: reviewRouter,
-  agency: agencyRouter,  
+  agency: agencyRouter,
+  bond: bondRouter,  
 });
 
 // export type definition of API
